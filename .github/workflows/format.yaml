@@ -1,0 +1,37 @@
+name: format code
+
+on:
+  push:
+    branches:
+      - "**"
+      - "!main"
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: yarn install
+        run: yarn install
+      - name: Github setting
+        run: |
+          git remote set-url origin https://github-actions:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}
+          git config --global user.name "${GITHUB_ACTOR}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: checkout pushed branch
+        run: |
+          git fetch
+          git branch
+          BRANCH_NAME=${{ github.ref_name }}
+          git checkout $BRANCH_NAME
+      - name: format code
+        run: yarn run format
+      - name: push to github
+        run: |
+          git add .
+          git commit -m "Auto commit from GitHub Actions"
+          git push origin $BRANCH_NAME
